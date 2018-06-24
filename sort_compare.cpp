@@ -1,6 +1,8 @@
 
 
 #include "radix.h"
+#include "AOS_radix.h"
+#include "cpu007_radix.h"
 #include "random_generator.h"
 
 #include <random>
@@ -11,8 +13,6 @@
 
 #include <benchmark/benchmark.h>
 
-
-static long N = 1000'000;
 
 using int_t = int;
 
@@ -48,11 +48,20 @@ static void RadixBench(benchmark::State& state) {
 
 }
 
+static void RadixAOSBench(benchmark::State& state) {
+  for (auto _ : state)
+  {
+    std::vector<int_t> vec = random_vector<int_t>(state.range(0), SEED);
+    int_radix_sort(&vec[0], state.range(0));
+    verify_output(vec);
+  }
+}
+
 static void RadixMsbBench(benchmark::State& state) {
   for (auto _ : state)
   {
     std::vector<int_t> vec = random_vector<int_t>(state.range(0), SEED);
-    radix_sort(&vec[0], &vec[state.range(0)], true);
+    radix_sort<int_t>(&vec[0], &vec[state.range(0)], true);
     verify_output(vec);
   }
 }
@@ -77,6 +86,8 @@ static void BoostSpreadsortBench(benchmark::State& state) {
 
 
 BENCHMARK(RadixBench)->Unit(benchmark::kMillisecond)
+  ->RangeMultiplier(16)->Range(1<<16, 1<<24);
+BENCHMARK(RadixAOSBench)->Unit(benchmark::kMillisecond)
   ->RangeMultiplier(16)->Range(1<<16, 1<<24);
 BENCHMARK(RadixMsbBench)->Unit(benchmark::kMillisecond)
   ->RangeMultiplier(16)->Range(1<<16, 1<<24);

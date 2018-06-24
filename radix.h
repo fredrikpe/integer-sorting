@@ -3,7 +3,9 @@
 
 #include <cstdlib>
 #include <algorithm>
+#include <omp.h>
 
+#include <iostream>
 namespace {
 
 template <typename T>
@@ -51,6 +53,7 @@ void _radix_one_msb_pass_first(T *begin, T *end, T *buf_begin, size_t shift = 8 
 	for (T *p = begin; p != end; p++)
 		*bucket[(*p >> shift) & 0xFF]++ = *p;
 
+#pragma omp parallel for 
 	for (int i = 0; i < 0x100; ++i)
 		_radix_lsb(obucket[i], bucket[i], begin + (obucket[i] - buf_begin), shift - 8);
 }
