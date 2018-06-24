@@ -7,23 +7,22 @@
 #include <iostream>
 #include <functional>
 
-using namespace std;
 
 template <typename T>
-vector<T> random_vector(size_t N, const auto& SEED)
+std::vector<T> random_vector(size_t N, const std::random_device::result_type& SEED)
 {
-    mt19937 mersenne_engine { SEED };  // Generates random integers
+    std::mt19937 mersenne_engine { SEED };
 
-    uniform_int_distribution<T> dist{ std::numeric_limits<T>::lowest(),
+    std::uniform_int_distribution<T> dist{ std::numeric_limits<T>::lowest(),
                                         std::numeric_limits<T>::max() };
 
     auto gen = [&dist, &mersenne_engine](){
                    return dist(mersenne_engine);
                };
 
+    std::vector<T> vec(N);
 
-    vector<T> vec(N);
-    generate(begin(vec), end(vec), gen);
+    std::generate(vec.begin(), vec.end(), gen);
 
     return vec;
 }

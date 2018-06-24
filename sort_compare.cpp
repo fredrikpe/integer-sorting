@@ -1,7 +1,6 @@
 
 
 #include "radix.h"
-#include "radix_msb.h"
 #include "random_generator.h"
 
 #include <random>
@@ -13,15 +12,15 @@
 #include <benchmark/benchmark.h>
 
 
-static long N = 10'000'000;
+static long N = 1000'000;
 
-using T = int;
-
-
-static auto SEED = random_device{}();
+using int_t = int;
 
 
-void print_vec(const std::vector<T>& v)
+static auto SEED = std::random_device{}();
+
+
+void print_vec(const std::vector<int_t>& v)
 {
   for (auto& e : v)
   {
@@ -30,45 +29,30 @@ void print_vec(const std::vector<T>& v)
   std::cout << std::endl;
 }
 
-bool verify_output(const std::vector<T>& v)
+bool verify_output(const std::vector<int_t>& v)
 {
-  return std::accumulate(v.begin(), v.end(), std::numeric_limits<T>::lowest(),
+  return std::accumulate(v.begin(), v.end(), std::numeric_limits<int_t>::lowest(),
       [](const auto& a, const auto& b) {
         assert(a <= b);
         return b;
         });
 }
 
-void fix(std::vector<T>& v)
-{
-  for (auto it = v.begin(); it != v.end(); ++it)
-  {
-    if (*it < 0)
-    {
-      std::rotate(v.begin(), it, v.end());
-      return;
-    }
-  }
-}
-
 static void RadixBench(benchmark::State& state) {
   for (auto _ : state)
   {
-    std::vector<T> vec = random_vector<T>(N, SEED);
-    radix_sort<T>(&vec[0], &vec[N]);
-
-    fix(vec);
+    std::vector<int_t> vec = random_vector<int_t>(state.range(0), SEED);
+    radix_sort<int_t>(&vec[0], &vec[state.range(0)]);
     verify_output(vec);
   }
+
 }
 
 static void RadixMsbBench(benchmark::State& state) {
   for (auto _ : state)
   {
-    std::vector<T> vec = random_vector<T>(N, SEED);
-    radix_sort_msb(&vec[0], &vec[N]);
-
-    fix(vec);
+    std::vector<int_t> vec = random_vector<int_t>(state.range(0), SEED);
+    radix_sort(&vec[0], &vec[state.range(0)], true);
     verify_output(vec);
   }
 }
@@ -76,30 +60,30 @@ static void RadixMsbBench(benchmark::State& state) {
 static void StdSortBench(benchmark::State& state) {
   for (auto _ : state)
   {
-    std::vector<T> vec = random_vector<T>(N, SEED);
+    std::vector<int_t> vec = random_vector<int_t>(state.range(0), SEED);
     std::sort(vec.begin(), vec.end());
     verify_output(vec);
   }
 }
 
-T compare (const void * a, const void * b)
+int_t compare (const void * a, const void * b)
 {
-  return ( *(T*)a - *(T*)b );
+  return ( *(int_t*)a - *(int_t*)b );
 }
 
 static void BoostIntegerBench(benchmark::State& state) {
   for (auto _ : state)
   {
-    std::vector<T> vec = random_vector<T>(N, SEED);
+    std::vector<int_t> vec = random_vector<int_t>(state.range(0), SEED);
     boost::sort::spreadsort::integer_sort(vec.begin(), vec.end());
     verify_output(vec);
   }
 }
 
 
-BENCHMARK(RadixBench)->Unit(benchmark::kMillisecond);
-BENCHMARK(RadixMsbBench)->Unit(benchmark::kMillisecond);
-BENCHMARK(StdSortBench)->Unit(benchmark::kMillisecond);
-BENCHMARK(BoostIntegerBench)->Unit(benchmark::kMillisecond);
+BENCHMARK(RadixBench)->Unit(benchmark::kMillisecond)->RangeMultiplier(16)->Range(1<<15, 1<<24);
+BENCHMARK(RadixMsbBench)->Unit(benchmark::kMillisecond)->RangeMultiplier(16)->Range(1<<15, 1<<24);
+BENCHMARK(StdSortBench)->Unit(benchmark::kMillisecond)->RangeMultiplier(16)->Range(1<<15, 1<<24);
+BENCHMARK(BoostIntegerBench)->Unit(benchmark::kMillisecond)->RangeMultiplier(16)->Range(1<<15, 1<<24);
 
 BENCHMARK_MAIN();
