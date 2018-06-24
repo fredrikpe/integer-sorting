@@ -11,6 +11,8 @@ void _radix_lsb(T* begin, T* end, T* buf_begin, size_t max_shift = 8 * (sizeof(T
 {
   auto* buf_end = buf_begin + (end - begin);
 
+  T* bucket[0x100];
+
   for (T shift = 0; shift <= max_shift; shift += 8)
   {
     size_t count[0x100] = {};
@@ -18,7 +20,6 @@ void _radix_lsb(T* begin, T* end, T* buf_begin, size_t max_shift = 8 * (sizeof(T
     for (T *p = begin; p != end; p++)
       count[(*p >> shift) & 0xFF]++;
 
-    T* bucket[0x100];
     auto *q = buf_begin;
     for (int i = 0; i < 0x100; q += count[i++])
       bucket[i] = q;
@@ -39,8 +40,8 @@ void _radix_one_msb_pass_first(T *begin, T *end, T *buf_begin, size_t shift = 8 
 	size_t count[0x100] = {};
 	for (T *p = begin; p != end; p++)
 		count[(*p >> shift) & 0xFF]++;
-
-	T* bucket[0x100];
+  
+  T* bucket[0x100];
   T* obucket[0x100];
   auto* q = buf_begin;
 

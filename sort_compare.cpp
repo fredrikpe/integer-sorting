@@ -7,7 +7,7 @@
 #include <cassert>
 #include <cstdlib>
 
-#include <boost/sort/spreadsort/integer_sort.hpp>
+#include <boost/sort/spreadsort/spreadsort.hpp>
 
 #include <benchmark/benchmark.h>
 
@@ -66,24 +66,23 @@ static void StdSortBench(benchmark::State& state) {
   }
 }
 
-int_t compare (const void * a, const void * b)
-{
-  return ( *(int_t*)a - *(int_t*)b );
-}
-
-static void BoostIntegerBench(benchmark::State& state) {
+static void BoostSpreadsortBench(benchmark::State& state) {
   for (auto _ : state)
   {
     std::vector<int_t> vec = random_vector<int_t>(state.range(0), SEED);
-    boost::sort::spreadsort::integer_sort(vec.begin(), vec.end());
+    boost::sort::spreadsort::spreadsort(vec.begin(), vec.end());
     verify_output(vec);
   }
 }
 
 
-BENCHMARK(RadixBench)->Unit(benchmark::kMillisecond)->RangeMultiplier(16)->Range(1<<15, 1<<24);
-BENCHMARK(RadixMsbBench)->Unit(benchmark::kMillisecond)->RangeMultiplier(16)->Range(1<<15, 1<<24);
-BENCHMARK(StdSortBench)->Unit(benchmark::kMillisecond)->RangeMultiplier(16)->Range(1<<15, 1<<24);
-BENCHMARK(BoostIntegerBench)->Unit(benchmark::kMillisecond)->RangeMultiplier(16)->Range(1<<15, 1<<24);
+BENCHMARK(RadixBench)->Unit(benchmark::kMillisecond)
+  ->RangeMultiplier(16)->Range(1<<16, 1<<24);
+BENCHMARK(RadixMsbBench)->Unit(benchmark::kMillisecond)
+  ->RangeMultiplier(16)->Range(1<<16, 1<<24);
+BENCHMARK(StdSortBench)->Unit(benchmark::kMillisecond)
+  ->RangeMultiplier(16)->Range(1<<16, 1<<24);
+BENCHMARK(BoostSpreadsortBench)->Unit(benchmark::kMillisecond)
+  ->RangeMultiplier(16)->Range(1<<16, 1<<24);
 
 BENCHMARK_MAIN();
